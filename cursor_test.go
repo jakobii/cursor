@@ -7,16 +7,16 @@ import (
 func TestCursor(t *testing.T) {
 	var b = []byte("select * from stu")
 
-	// spawn a new cursor
-	var c = NewCursor(b)
+	// spawn a new Cursor
+	var c = NewCursor(b,0)
 
 	c.Next()
-	if c.Index() != 0 {
+	if c.Index != 0 {
 		t.Errorf("Next() skipped Index 0")
 	}
 
 	c.Next()
-	if c.Index() != 1 {
+	if c.Index != 1 {
 		t.Errorf("Next() failed to Increment")
 	}
 
@@ -26,7 +26,7 @@ func TestCursor(t *testing.T) {
 	}
 
 	// these will create out of range errors if they dont perform correctly
-	var c2 = NewCursor(b)
+	var c2 = NewCursor(b,0)
 	for c2.Next() {
 
 	}

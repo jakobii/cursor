@@ -1,77 +1,105 @@
 package cursor
 
 /*
-  The cursor package makes moving up and down a bit slices easier.
+  The Cursor package makes moving up and down a bit slices easier.
+	Cursors are intended to have a short life span, used to perform an operation
+	within a function.
 */
 
-// NewCursor is a cursor constructor
-func NewCursor(b []byte) (c cursor) {
+// NewCursor is a Cursor constructor
+func NewCursor(b []byte, startIndex int) (c Cursor) {
 	c.bytes = b
-	c.decrement = true
+	c.Index = startIndex
 	return c
 }
 
-// cursor is an arrays current byte index
-// the increment property is used to allow for the next func to emit a zero index.
-type cursor struct {
+// Cursor
+type Cursor struct {
+	Index     int
 	bytes     []byte
-	index     int
-	increment bool
-	decrement bool
+	Increment bool
+	Decrement bool
 }
 
-// GetByte return the document byte at the cursors current index
-func (c *cursor) GetByte() byte {
-	return (*c).bytes[(*c).index]
+// GetByte return the document byte at the Cursors current Index
+func (c *Cursor) GetByte() byte {
+	return (*c).bytes[(*c).Index]
 }
 
-// SetByte updates the document byte at the cursors current index
-func (c *cursor) SetByte(b byte) {
-	(*c).bytes[(*c).index] = b
+// SetByte updates the document byte at the Cursors current Index
+func (c *Cursor) SetByte(b byte) {
+	(*c).bytes[(*c).Index] = b
 }
 
-// Index returns the cursors current index.
-func (c *cursor) Index() int {
-	return int((*c).index)
+// sets the Index of the Cursor at the begining of the byte array
+func (c *Cursor) ToStart() {
+	(*c).Index = 0
+	(*c).Increment = false
 }
 
-// Forward moves the cursor forward n bytes. Will return an false if index is
+// sets the Index of the Cursor at the end of the byte array
+func (c *Cursor) ToEnd() {
+	(*c).Index = len((*c).bytes) - 1
+	(*c).Decrement = false
+}
+
+// DontSkip resets the decr and incr boolean to false
+func (c *Cursor) DontSkip() {
+	(*c).Increment = false
+	(*c).Decrement = false
+}
+
+// DontSkip sets the decr and incr boolean to true
+func (c *Cursor) Skip() {
+	(*c).Increment = true
+	(*c).Decrement = true
+}
+
+
+// Forward moves the Cursor forward n bytes. Will return an false if Index is
 // larger then document byte array
-func (c *cursor) Forward(n int) bool {
-	if ((*c).index + n) >= len((*c).bytes) {
+func (c *Cursor) Forward(n int) bool {
+	if !(((*c).Index + n) < len((*c).bytes)) {
+		(*c).Decrement = false
 		return false
 	}
-	(*c).index += n
+	(*c).Index += n
 	return true
 }
 
-// Backward moves the cursor Backward n bytes and return true if the new cursor
-// index would be is less then zero.
-func (c *cursor) Backward(n int) bool {
-	if ((*c).index - n) < 0 {
+// Backward moves the Cursor Backward n bytes and return true if the new Cursor
+// Index would be is less then zero.
+func (c *Cursor) Backward(n int) bool {
+	if ((*c).Index - n) < 0 {
+		(*c).Increment = false
 		return false
 	}
-	(*c).index -= n
+	(*c).Index -= n
 	return true
 }
 
-// Next increments the cursor by 1. if increment is set to false, it will set
-// increment to equal true and it will skip incrementing the cursor.
-func (c *cursor) Next() bool {
-	if c.increment == false {
-		(*c).increment = true
+// Next Increments the Cursor by 1. Next is intended to be used in a loop.
+func (c *Cursor) Next() (b bool) {
+	if !(*c).Increment {
+    (*c).Increment = true
 		return true
 	}
-	return (*c).Forward(1)
+	b = (*c).Forward(1)
+	if !b {
+		(*c).Decrement = false
+	}
+	return b
 }
 
-// Prev decrements the cursor by 1. if decrement is set to false, it will set
-// decrement to equal true and it will skip decrementing the cursor. when
-// using NewCursor the decrement property is set to false.
-func (c *cursor) Prev() bool {
-	if c.decrement == false {
-		(*c).decrement = true
+// Prev Decrements the Cursor by 1. Prev is intended to be used in a loop.
+func (c *Cursor) Prev() (b bool) {
+	if !(*c).Decrement {
+		(*c).Decrement = true
 		return true
 	}
-	return (*c).Backward(1)
+	b = (*c).Backward(1)
+	if !b {
+		(*c).Increment = false
+	}
+	return b
 }
