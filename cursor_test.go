@@ -10,7 +10,6 @@ func TestCursor(t *testing.T) {
 	// spawn a new Cursor
 	var c = NewCursor(b,0)
 
-	c.Next()
 	if c.Index != 0 {
 		t.Errorf("Next() skipped Index 0")
 	}
